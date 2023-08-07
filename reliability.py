@@ -169,10 +169,14 @@ class Reliability():
   def monte_carlo_simplified(self,n_LHS=100000):
     param_values = latin.sample(self.variables, n_LHS)
     moment_simplified =[]
+    
     for values in param_values:
         self.set_original()
         for j,value in enumerate(values):
           self.update_beam(self.variables['names'][j],value)
         self.beam._compute_centroid()
         moment_simplified.append(self.get_resistance_moment())
+    
+    moment_simplified = np.array(moment_simplified)
+    moment_simplified = moment_simplified[moment_simplified>0]
     return moment_simplified
