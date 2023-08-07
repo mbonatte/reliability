@@ -110,13 +110,17 @@ class Reliability():
 
     if n_points == None:
       n_points=self.n_points
-    if self.inverted:
-      return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
-      #return abs(self.beam.get_max_moment(n_points, inverted=self.inverted, error=0.01))
-      #return self.beam.get_max_moment_reversed_simplified()
-    else:
-      return self.beam.get_max_moment(n_points)
-      #return self.beam.get_max_moment_simplified()
+
+    try:
+      if self.inverted:
+        return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
+        #return abs(self.beam.get_max_moment(n_points, inverted=self.inverted, error=0.01))
+        #return self.beam.get_max_moment_reversed_simplified()
+      else:
+        return self.beam.get_max_moment(n_points)
+        #return self.beam.get_max_moment_simplified()
+    except TypeError:
+        return 0
 
 
   def get_bk(self,variable):
