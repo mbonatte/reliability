@@ -187,5 +187,5 @@ class Reliability():
         moment_simplified.append(self.get_resistance_moment())
     
     moment_simplified = np.array(moment_simplified)
-    moment_simplified = moment_simplified[moment_simplified>0]
+    moment_simplified = moment_simplified[moment_simplified != 0]
     return moment_simplified
