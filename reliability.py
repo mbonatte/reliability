@@ -24,7 +24,7 @@ class Reliability():
       for section in self.beam.section:
         if isinstance(section,sa.geometry.Rebar):
           section.area = self.rebar_area[i]
-          section.center = self.rebar_pos[i]
+          section.center[1] = self.rebar_pos[i]
           i+=1
     else:
       self.rebar_area = []
@@ -32,7 +32,7 @@ class Reliability():
       for section in self.beam.section:
         if isinstance(section,sa.geometry.Rebar):
           self.rebar_area.append(section.area)
-          self.rebar_pos.append(section.center)
+          self.rebar_pos.append(section.center[1])
 
   def update_beam(self,variable,value,reset=False):
     if(variable=='fc'):
