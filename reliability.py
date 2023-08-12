@@ -136,6 +136,7 @@ class Reliability():
     if mean == 0:
       return 0
     std = self.variables['bounds'][pos][1]
+    self.update_beam(variable,mean)
     ym = self.get_resistance_moment()
     bk = 0
     for i,d_x in enumerate(std*np.array([-3,-2,-1,1,2,3])):
