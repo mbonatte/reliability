@@ -63,40 +63,40 @@ class Reliability():
     elif(variable=='cover_bottom'):
       for section in self.beam.section:
         if isinstance(section,sa.geometry.Rebar):
-          if section.center_y < self.beam.centroid[1]:
-            section.center_y = value + section.center_y
+          if section.center[1] < self.beam.centroid[1]:
+            section.center[1] = value + section.center[1]
     elif(variable=='cover_top'):
       for section in self.beam.section:
         if isinstance(section,sa.geometry.Rebar):
-          if section.center_y > self.beam.centroid[1]:
-            section.center_y = -value + section.center_y
+          if section.center[1] > self.beam.centroid[1]:
+            section.center[1] = -value + section.center[1]
     elif(variable=='b_web'):
       self.beam.section[0].width = value
     elif(variable=='h_web'):
       if self.inverted:
         top = self.beam.section[0].boundary[1][1]
-        # self.beam.section[0].height = value
-        # self.beam.section[0].center_y = top - value/2
+        self.beam.section[0].height = value
+        self.beam.section[0].center[1] = top - value/2
       else:
         self.beam.section[0].height = value
-        self.beam.section[0].center_y = value/2
+        self.beam.section[0].center[1] = value/2
         height = self.beam.section[1].height
-        self.beam.section[1].center_y = value + height/2
+        self.beam.section[1].center[1] = value + height/2
         top = self.beam.section[1].boundary[1][1]
         height = self.beam.section[2].height
-        self.beam.section[2].center_y = top + height/2
+        self.beam.section[2].center[1] = top + height/2
     elif(variable=='h_flange'):
       if self.inverted:
         top = self.beam.section[1].boundary[1][1]
-        # self.beam.section[1].height = value
-        # self.beam.section[1].center_y = top - value/2
-        # bottom = self.beam.section[1].boundary[0][1]
-        # top = self.beam.section[0].boundary[1][1] 
-        # self.beam.section[0].center_y -= top-bottom
+        self.beam.section[1].height = value
+        self.beam.section[1].center[1] = top - value/2
+        bottom = self.beam.section[1].boundary[0][1]
+        top = self.beam.section[0].boundary[1][1] 
+        self.beam.section[0].center[1] -= top-bottom
       else:
         self.beam.section[2].height = value
         bottom = self.beam.section[1].boundary[1][1]
-        self.beam.section[2].center_y = bottom + value/2
+        self.beam.section[2].center[1] = bottom + value/2
     #elif(variable=='tetha_r'):
       #self.tetha_r = value
 
