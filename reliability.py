@@ -82,9 +82,10 @@ class Reliability():
         self.beam.section[0].center[1] = value/2
         height = self.beam.section[1].height
         self.beam.section[1].center[1] = value + height/2
-        top = self.beam.section[1].boundary[1][1]
-        height = self.beam.section[2].height
-        self.beam.section[2].center[1] = top + height/2
+        if isinstance(self.beam.section[2],sa.geometry.RectSection):
+          top = self.beam.section[1].boundary[1][1]
+          height = self.beam.section[2].height
+          self.beam.section[2].center[1] = top + height/2
     elif(variable=='h_flange'):
       if self.inverted:
         top = self.beam.section[1].boundary[1][1]
@@ -94,9 +95,14 @@ class Reliability():
         top = self.beam.section[0].boundary[1][1] 
         self.beam.section[0].center[1] -= top-bottom
       else:
-        self.beam.section[2].height = value
-        bottom = self.beam.section[1].boundary[1][1]
-        self.beam.section[2].center[1] = bottom + value/2
+        if isinstance(self.beam.section[2],sa.geometry.RectSection):
+          self.beam.section[2].height = value
+          bottom = self.beam.section[1].boundary[1][1]
+          self.beam.section[2].center[1] = bottom + value/2
+        else:
+          self.beam.section[1].height = value
+          bottom = self.beam.section[0].get_boundary()[1][1]
+          self.beam.section[1].center[1] = bottom + value/2
     #elif(variable=='tetha_r'):
       #self.tetha_r = value
 
