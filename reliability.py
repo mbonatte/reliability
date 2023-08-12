@@ -3,7 +3,6 @@ class Reliability():
     self.beam = beam
     self.n_points = 100
     self.error = 1e3
-    self.max_increment_e0 = 0.0005
     self.set_original(True)
     self.variables = variables
     self.tetha_r = 1
@@ -110,7 +109,7 @@ class Reliability():
 
 
 
-  def get_resistance_moment(self,n_points=None, error=1e3, max_increment_e0=0.0005):
+  def get_resistance_moment(self,n_points=None):
     height = self.beam.get_section_boundary()[1][1]
     bottom = self.beam.get_section_boundary()[0][1]
     et, eb = -4e-3, 15e-3
@@ -121,12 +120,12 @@ class Reliability():
 
     try:
       if self.inverted:
-        return self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted, error=self.error, max_increment_e0=self.max_increment_e0)
+        return self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted, error=self.error)
         #return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
         #return abs(self.beam.get_max_moment(n_points, inverted=self.inverted, error=0.01))
         #return self.beam.get_max_moment_reversed_simplified()
       else:
-        return self.beam.get_max_moment(n_points, error=self.error, max_increment_e0=self.max_increment_e0)
+        return self.beam.get_max_moment(n_points, error=self.error)
         #return self.beam.get_max_moment_simplified()
     except TypeError:
         return 0
