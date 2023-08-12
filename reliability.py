@@ -108,7 +108,7 @@ class Reliability():
 
 
 
-  def get_resistance_moment(self,n_points=None):
+  def get_resistance_moment(self,n_points=None, error=1e3, max_increment_e0=0.0005):
     height = self.beam.get_section_boundary()[1][1]
     bottom = self.beam.get_section_boundary()[0][1]
     et, eb = -4e-3, 15e-3
@@ -119,12 +119,12 @@ class Reliability():
 
     try:
       if self.inverted:
-        return self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted)
+        return self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted, error=1e3, max_increment_e0=0.0005)
         #return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
         #return abs(self.beam.get_max_moment(n_points, inverted=self.inverted, error=0.01))
         #return self.beam.get_max_moment_reversed_simplified()
       else:
-        return self.beam.get_max_moment(n_points)
+        return self.beam.get_max_moment(n_points, error=1e3, max_increment_e0=0.0005)
         #return self.beam.get_max_moment_simplified()
     except TypeError:
         return 0
