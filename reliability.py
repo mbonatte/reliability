@@ -101,7 +101,7 @@ class Reliability():
           self.beam.section[2].center[1] = bottom + value/2
         else:
           self.beam.section[1].height = value
-          bottom = self.beam.section[0].get_boundary()[1][1]
+          bottom = self.beam.section[0].boundary[1][1]
           self.beam.section[1].center[1] = bottom + value/2
     #elif(variable=='tetha_r'):
       #self.tetha_r = value
