@@ -9,7 +9,7 @@ class Reliability():
 
   def check_ELU(self, load, n_points=500):
     if self.inverted:
-      max_moment = abs(self.beam.get_max_moment(n_points=n_points, inverted=self.inverted))
+      max_moment = abs(self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted))
     else:
       max_moment = self.beam.get_max_moment(n_points=n_points)
     print(f'Momento_rd = {max_moment*1e-3:.1f} kN.m')
@@ -119,7 +119,8 @@ class Reliability():
 
     try:
       if self.inverted:
-        return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
+        return self.beam.get_max_moment(n_points=n_points, is_inverted=self.inverted)
+        #return self.beam.get_moment_curvature(max_curvature, normal_force=0, n_points=500)
         #return abs(self.beam.get_max_moment(n_points, inverted=self.inverted, error=0.01))
         #return self.beam.get_max_moment_reversed_simplified()
       else:
