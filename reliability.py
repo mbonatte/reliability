@@ -66,76 +66,100 @@ class Reliability():
       self.original_centroid = self.beam.centroid.copy()
 
   def update_beam(self,variable,value,reset=False):
-    if(variable=='fc'):
-      for section in self.beam.section:
-        if isinstance(section,sa.geometry.RectSection):
-          section.material.fc = value
-    elif(variable=='fy'):
-      for section in self.beam.section:
-        if type(section) == sa.geometry.Rebar:
-          section.material.fy = value
-    elif(variable=='fpt'):
-      for section in self.beam.section:
-        if type(section) == sa.geometry.Tendon:
-          section.material.ft = value
-          section.material.fy = 0.85 * value # JCSS
-    elif(variable=='Es'):
-      for section in self.beam.section:
-        if isinstance(section,sa.geometry.Rebar):
-          section.material.young = value
-    elif(variable=='As'):
-      for i,section in enumerate(self.beam.section):
-        if type(section) == sa.geometry.Rebar:
-          section.area = value * self.original_sections[i]['area']
-    elif(variable=='Ap'):
-      for i,section in enumerate(self.beam.section):
-        if type(section) == sa.geometry.Tendon:
-          section.area = value * self.original_sections[i]['area']
-    elif(variable=='cover_bottom'):
-      for i,section in enumerate(self.beam.section):
-        if isinstance(section,sa.geometry.Rebar):
-          if self.original_sections[i]['center'][1] < self.original_centroid[1]:
-            section.center[1] = value + self.original_sections[i]['center'][1]
-    elif(variable=='cover_top'):
-      for i,section in enumerate(self.beam.section):
-        if isinstance(section,sa.geometry.Rebar):
-          if self.original_sections[i]['center'][1] > self.original_centroid[1]:
-            section.center[1] = -value + self.original_sections[i]['center'][1]
-    elif(variable=='b_web'):
-      self.beam.section[0].width = value
-    elif(variable=='h_web'):
-      if self.inverted:
-        top = self.beam.section[0].boundary[1][1]
-        self.beam.section[0].height = value
-        self.beam.section[0].center[1] = top - value/2
-      else:
-        self.beam.section[0].height = value
-        self.beam.section[0].center[1] = value/2
-        height = self.beam.section[1].height
-        self.beam.section[1].center[1] = value + height/2
-        if isinstance(self.beam.section[2],sa.geometry.RectSection):
-          top = self.beam.section[1].boundary[1][1]
-          height = self.beam.section[2].height
-          self.beam.section[2].center[1] = top + height/2
-    elif(variable=='h_flange'):
-      if self.inverted:
+    handlers = {
+      'fc': self._update_fc,
+      'fy': self._update_fy,
+      'fpt': self._update_fpt,
+      'Es': self._update_Es,
+      'As': self._update_As,
+      'Ap': self._update_Ap,
+      'cover_bottom': self._update_cover_bottom,
+      'cover_top': self._update_cover_top,
+      'b_web': self._update_b_web,
+      'h_web': self._update_h_web,
+      'h_flange': self._update_h_flange
+    }
+    if variable in handlers:
+      handlers[variable](value)
+
+  def _update_fc(self,value):
+    for section in self.beam.section:
+      if isinstance(section,sa.geometry.RectSection):
+        section.material.fc = value
+
+  def _update_fy(self,value):
+    for section in self.beam.section:
+      if type(section) == sa.geometry.Rebar:
+        section.material.fy = value
+
+  def _update_fpt(self,value):
+    for section in self.beam.section:
+      if type(section) == sa.geometry.Tendon:
+        section.material.ft = value
+        section.material.fy = 0.85 * value # JCSS
+
+  def _update_Es(self,value):
+    for section in self.beam.section:
+      if isinstance(section,sa.geometry.Rebar):
+        section.material.young = value
+
+  def _update_As(self,value):
+    for i,section in enumerate(self.beam.section):
+      if type(section) == sa.geometry.Rebar:
+        section.area = value * self.original_sections[i]['area']
+
+  def _update_Ap(self,value):
+    for i,section in enumerate(self.beam.section):
+      if type(section) == sa.geometry.Tendon:
+        section.area = value * self.original_sections[i]['area']
+
+  def _update_cover_bottom(self,value):
+    for i,section in enumerate(self.beam.section):
+      if isinstance(section,sa.geometry.Rebar):
+        if self.original_sections[i]['center'][1] < self.original_centroid[1]:
+          section.center[1] = value + self.original_sections[i]['center'][1]
+
+  def _update_cover_top(self,value):
+    for i,section in enumerate(self.beam.section):
+      if isinstance(section,sa.geometry.Rebar):
+        if self.original_sections[i]['center'][1] > self.original_centroid[1]:
+          section.center[1] = -value + self.original_sections[i]['center'][1]
+
+  def _update_b_web(self,value):
+    self.beam.section[0].width = value
+
+  def _update_h_web(self,value):
+    if self.inverted:
+      top = self.beam.section[0].boundary[1][1]
+      self.beam.section[0].height = value
+      self.beam.section[0].center[1] = top - value/2
+    else:
+      self.beam.section[0].height = value
+      self.beam.section[0].center[1] = value/2
+      height = self.beam.section[1].height
+      self.beam.section[1].center[1] = value + height/2
+      if isinstance(self.beam.section[2],sa.geometry.RectSection):
         top = self.beam.section[1].boundary[1][1]
-        self.beam.section[1].height = value
-        self.beam.section[1].center[1] = top - value/2
-        bottom = self.beam.section[1].boundary[0][1]
-        top = self.beam.section[0].boundary[1][1] 
-        self.beam.section[0].center[1] -= top-bottom
+        height = self.beam.section[2].height
+        self.beam.section[2].center[1] = top + height/2
+
+  def _update_h_flange(self,value):
+    if self.inverted:
+      top = self.beam.section[1].boundary[1][1]
+      self.beam.section[1].height = value
+      self.beam.section[1].center[1] = top - value/2
+      bottom = self.beam.section[1].boundary[0][1]
+      top = self.beam.section[0].boundary[1][1]
+      self.beam.section[0].center[1] -= top-bottom
+    else:
+      if isinstance(self.beam.section[2],sa.geometry.RectSection):
+        self.beam.section[2].height = value
+        bottom = self.beam.section[1].boundary[1][1]
+        self.beam.section[2].center[1] = bottom + value/2
       else:
-        if isinstance(self.beam.section[2],sa.geometry.RectSection):
-          self.beam.section[2].height = value
-          bottom = self.beam.section[1].boundary[1][1]
-          self.beam.section[2].center[1] = bottom + value/2
-        else:
-          self.beam.section[1].height = value
-          bottom = self.beam.section[0].boundary[1][1]
-          self.beam.section[1].center[1] = bottom + value/2
-    #elif(variable=='tetha_r'):
-      #self.tetha_r = value
+        self.beam.section[1].height = value
+        bottom = self.beam.section[0].boundary[1][1]
+        self.beam.section[1].center[1] = bottom + value/2
 
 
 
