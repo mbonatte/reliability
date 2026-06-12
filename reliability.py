@@ -1,3 +1,9 @@
+import numpy as np
+import secan as sa
+from SALib.analyze import sobol
+from SALib.sample import latin
+from SALib.sample import sobol as sobol_sample
+
 class Reliability():
   def __init__(self, beam, variables=None):
     self.beam = beam
@@ -155,28 +161,34 @@ class Reliability():
       bk.append(self.get_bk(variable))
     return np.array(bk)/max(bk)*100
 
-  def sensitivity_Sobol(self, n=512):
-    values_sobol = sobol_sample.sample(variables, n)
+  def sensitivity_Sobol(self, n=512, seed=None, calc_second_order=False):
+    values_sobol = sobol_sample.sample(
+      self.variables,
+      n,
+      calc_second_order=calc_second_order,
+      seed=seed
+    )
     Y_sobol = []
     for value in values_sobol:
       self.set_original()
       for variable in self.variables['names']:
         pos = (self.variables['names'].index(variable))
         self.update_beam(variable,value[pos])
+      self.beam._compute_centroid()
       Y_sobol.append(self.get_resistance_moment())
     self.set_original()
-    #self.beam._compute_centroid()
+    self.beam._compute_centroid()
     Y_sobol = np.array(Y_sobol)
-    Si = sobol.analyze(variables, Y_sobol)
-    for i in range(len(self.variables['names'])):
-      fig, graph = plt.subplots(1,2)
-      graph[0].plot(values_sobol.T[i], Y_sobol/1e3,'o')
-      graph[1].hist(values_sobol.T[i])
-      graph[0].set(xlabel =self.variables['names'][i])
+    Si = sobol.analyze(
+      self.variables,
+      Y_sobol,
+      calc_second_order=calc_second_order,
+      seed=seed
+    )
     return Si['S1'], Si['ST']
 
-  def monte_carlo_simplified(self,n_LHS=100000):
-    param_values = latin.sample(self.variables, n_LHS)
+  def monte_carlo_simplified(self,n_LHS=100000, seed=None):
+    param_values = latin.sample(self.variables, n_LHS, seed=seed)
     moment_simplified =[]
     
     for values in param_values:
@@ -185,6 +197,8 @@ class Reliability():
           self.update_beam(self.variables['names'][j],value)
         self.beam._compute_centroid()
         moment_simplified.append(self.get_resistance_moment())
+    self.set_original()
+    self.beam._compute_centroid()
     
     moment_simplified = np.array(moment_simplified)
     moment_simplified = moment_simplified[moment_simplified != 0]
