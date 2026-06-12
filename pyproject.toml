@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reliability"
+version = "0.1.0"
+description = "Reliability helpers for section analysis"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "SALib",
+    "secan @ git+https://github.com/mbonatte/secan.git",
+]
+
+[tool.setuptools]
+py-modules = ["reliability"]
