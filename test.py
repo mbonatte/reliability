@@ -220,6 +220,16 @@ class TestSections(unittest.TestCase):
         for updated_area, original_area in zip(updated_areas, original_areas):
             self.assertAlmostEqual(updated_area, original_area * 1.10)
 
+        self.beam_reliability.update_beam("As", 1.10)
+        updated_again_areas = [
+            section.area
+            for section in self.beam_reliability.beam.section
+            if isinstance(section, sa.geometry.Rebar)
+        ]
+
+        for updated_area, original_area in zip(updated_again_areas, original_areas):
+            self.assertAlmostEqual(updated_area, original_area * 1.10)
+
         self.beam_reliability.set_original()
         reset_areas = [
             section.area
@@ -250,14 +260,14 @@ class TestSections(unittest.TestCase):
 
         expected = np.array(
             [
-                6.43914800,
-                75.89694322,
+                8.57140908,
                 100.0,
+                50.54845617,
                 0.0,
-                1.34860022,
-                0.0,
-                14.89690172,
-                6.34564302,
+                2.02204229,
+                4.60588899e-10,
+                17.14459431,
+                7.30622907,
             ]
         )
 

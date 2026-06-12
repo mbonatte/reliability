@@ -27,19 +27,43 @@ class Reliability():
 
   def set_original(self,update=False):
     if not update:
-      i=0
-      for section in self.beam.section:
+      for section, original in zip(self.beam.section, self.original_sections):
+        section.center = original['center'].copy()
+        if isinstance(section,sa.geometry.RectSection):
+          section.width = original['width']
+          section.height = original['height']
         if isinstance(section,sa.geometry.Rebar):
-          section.area = self.rebar_area[i]
-          section.center[1] = self.rebar_pos[i]
-          i+=1
+          section.area = original['area']
+          section.material.young = original['young']
+          section.material.fy = original['fy']
+        if isinstance(section,sa.geometry.Tendon):
+          section.material.ft = original['ft']
+        if hasattr(section.material, 'fc'):
+          section.material.fc = original['fc']
+      self.beam._compute_centroid()
     else:
+      self.original_sections = []
       self.rebar_area = []
       self.rebar_pos = []
       for section in self.beam.section:
+        original = {
+          'center': section.center.copy()
+        }
+        if isinstance(section,sa.geometry.RectSection):
+          original['width'] = section.width
+          original['height'] = section.height
         if isinstance(section,sa.geometry.Rebar):
+          original['area'] = section.area
+          original['young'] = section.material.young
+          original['fy'] = section.material.fy
           self.rebar_area.append(section.area)
           self.rebar_pos.append(section.center[1])
+        if isinstance(section,sa.geometry.Tendon):
+          original['ft'] = section.material.ft
+        if hasattr(section.material, 'fc'):
+          original['fc'] = section.material.fc
+        self.original_sections.append(original)
+      self.original_centroid = self.beam.centroid.copy()
 
   def update_beam(self,variable,value,reset=False):
     if(variable=='fc'):
@@ -60,23 +84,23 @@ class Reliability():
         if isinstance(section,sa.geometry.Rebar):
           section.material.young = value
     elif(variable=='As'):
-      for section in self.beam.section:
+      for i,section in enumerate(self.beam.section):
         if type(section) == sa.geometry.Rebar:
-          section.area = value * section.area
+          section.area = value * self.original_sections[i]['area']
     elif(variable=='Ap'):
-      for section in self.beam.section:
+      for i,section in enumerate(self.beam.section):
         if type(section) == sa.geometry.Tendon:
-          section.area = value * section.area
+          section.area = value * self.original_sections[i]['area']
     elif(variable=='cover_bottom'):
-      for section in self.beam.section:
+      for i,section in enumerate(self.beam.section):
         if isinstance(section,sa.geometry.Rebar):
-          if section.center[1] < self.beam.centroid[1]:
-            section.center[1] = value + section.center[1]
+          if self.original_sections[i]['center'][1] < self.original_centroid[1]:
+            section.center[1] = value + self.original_sections[i]['center'][1]
     elif(variable=='cover_top'):
-      for section in self.beam.section:
+      for i,section in enumerate(self.beam.section):
         if isinstance(section,sa.geometry.Rebar):
-          if section.center[1] > self.beam.centroid[1]:
-            section.center[1] = -value + section.center[1]
+          if self.original_sections[i]['center'][1] > self.original_centroid[1]:
+            section.center[1] = -value + self.original_sections[i]['center'][1]
     elif(variable=='b_web'):
       self.beam.section[0].width = value
     elif(variable=='h_web'):
@@ -143,15 +167,19 @@ class Reliability():
     if mean == 0:
       return 0
     std = self.variables['bounds'][pos][1]
+    self.set_original()
     self.update_beam(variable,mean)
+    self.beam._compute_centroid()
     ym = self.get_resistance_moment()
     bk = 0
     for i,d_x in enumerate(std*np.array([-3,-2,-1,1,2,3])):
+      self.set_original()
       self.update_beam(variable,mean+d_x)
+      self.beam._compute_centroid()
       y = self.get_resistance_moment()
       d_y = y - ym
       bk += abs((d_y/ym)/(d_x/mean))
-    self.update_beam(variable,mean)
+    self.set_original()
     cov = std/mean
     return bk*cov
 
@@ -159,6 +187,7 @@ class Reliability():
     bk = []
     for variable in self.variables['names']:
       bk.append(self.get_bk(variable))
+    self.set_original()
     return np.array(bk)/max(bk)*100
 
   def sensitivity_Sobol(self, n=512, seed=None, calc_second_order=False):
